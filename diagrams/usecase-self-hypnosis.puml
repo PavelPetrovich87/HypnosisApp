@@ -1,0 +1,98 @@
+@startuml
+left to right direction
+skinparam usecase {
+  BackgroundColor White
+  BorderColor #333333
+}
+skinparam packageStyle rectangle
+
+actor "Primary User" as User
+actor "Audio Service\n(External)" as Audio
+actor "Storage System\n(External)" as Storage
+actor "Auth Provider\n(External)" as Auth
+
+rectangle "Self-Hypnosis Mobile App\n(React Native)" as App {
+  package "Auth" {
+    usecase "Register/Login\n[Auth - Email Sign-in]" as UC_Login
+    usecase "Verify Email\n(resend timer, change-email/help)\n[Auth - Verification]" as UC_Verify
+  }
+
+  package "Onboarding" {
+    usecase "Select Goals\n(multi-select chips)\n[Onboarding - Goals]" as UC_Goals
+    usecase "View Offline Info\n(permissions timing, data usage, basics)\n[Onboarding - Offline Info]" as UC_OfflineInfo
+    usecase "Complete Profile Basics\n(name, required voice pref + preview)\n[Onboarding - Profile Basics]" as UC_Profile
+  }
+
+  package "Home" {
+    usecase "View Home Dashboard\n(greeting, quota, quick actions,\nsuggested, recent)\n[Home - Dashboard]" as UC_Home
+    usecase "Show Suggested Content\n(based on goals/history)\n[Home - Suggestions]" as UC_Suggested
+    usecase "Track Quota and Upgrade\n('3 free', low/exhausted,\nupgrade CTA outside beta)\n[Home - Quota]" as UC_Quota
+  }
+
+  package "Generate" {
+    usecase "Generate Session\n(Choose Preset/Custom;\nQuick or Advanced)\n[Generate - Parameters]" as UC_Generate
+    usecase "Validate Quota\n[Generate - Validation]" as UC_ValidateQuota
+    usecase "Show Advanced Options\n(induction/deepening/audio)\n[Generate - Advanced]" as UC_Advanced
+    usecase "Review & Generate\n(preview, confirm)\n[Generate - Review]" as UC_Review
+  }
+
+  package "Playback / Offline" {
+    usecase "Play Session\n(from Home/Suggested/Recent)\n[Playback - Player]" as UC_Play
+    usecase "Check Offline Availability\n(decide stream vs local)\n[Playback - Availability]" as UC_CheckOffline
+    usecase "Download for Offline\n(manage availability indicators)\n[Library - Download]" as UC_Download
+  }
+}
+
+' Primary interactions
+User --> UC_Login
+User --> UC_Goals
+User --> UC_OfflineInfo
+User --> UC_Profile
+User --> UC_Home
+User --> UC_Generate
+User --> UC_Play
+User --> UC_Download
+User --> UC_Quota
+
+' External system collaborations
+UC_Verify --> Auth : "Send/verify link"
+UC_Profile --> Audio : "Voice preview"
+UC_Generate --> Audio : "Request TTS/LLM audio"
+UC_Download --> Storage : "Save to device/cloud"
+UC_CheckOffline --> Storage : "Query local files"
+UC_Play --> Storage : "Read local file (if offline)"
+
+' Includes / Extends
+UC_Login .> UC_Verify : <<extend>>\n(email-based sign-up)
+UC_Generate .> UC_ValidateQuota : <<include>>
+UC_Play .> UC_CheckOffline : <<include>>
+UC_Home .> UC_Suggested : <<include>>
+UC_Generate .> UC_Advanced : <<extend>>\n(when user opens Advanced)
+
+' Quick vs Advanced tags
+UC_Generate <<Quick>>
+UC_Advanced <<Advanced>>
+
+' State/variant notes
+note right of UC_ValidateQuota
+Quota states: full, low, exhausted.
+If exhausted, show upgrade CTA (outside beta).
+end note
+
+note right of UC_Home
+During beta: show "Free beta – unlimited sessions" badge
+in Home and generation flows.
+end note
+
+note right of UC_Play
+Offline: disable generation; surface downloaded sessions
+and local playback when offline.
+end note
+
+note right of UC_Download
+Show downloaded indicators on Home and Review.
+end note
+
+@enduml
+
+
