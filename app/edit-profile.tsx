@@ -66,7 +66,7 @@ export default function EditProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.avatarSection}>
+      <View style={styles.avatarCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>👤</Text>
         </View>
@@ -75,36 +75,38 @@ export default function EditProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={(value) => updateField('name', value)}
-            placeholder="Enter your name"
-            autoCapitalize="words"
-          />
+      <View style={styles.formContainer}>
+        <View style={styles.formCard}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Name test</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={(value) => updateField('name', value)}
+              placeholder="Enter your name"
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={(value) => updateField('email', value)}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Text style={styles.inputNote}>
+              ✅ Verified • Used for account recovery and notifications
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={(value) => updateField('email', value)}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <Text style={styles.inputNote}>
-            ✅ Verified • Used for account recovery and notifications
-          </Text>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Preferred Voice</Text>
-          <Text style={styles.sublabel}>Choose the voice for your hypnosis sessions</Text>
+        <View style={styles.voiceSection}>
+          <Text style={styles.sectionTitle}>Preferred Voice</Text>
+          <Text style={styles.sectionSubtitle}>Choose the voice for your hypnosis sessions</Text>
           
           {VOICES.map((voice) => (
             <TouchableOpacity
@@ -131,7 +133,7 @@ export default function EditProfileScreen() {
           ))}
         </View>
 
-        <View style={styles.dangerZone}>
+        <View style={styles.dangerZoneCard}>
           <Text style={styles.dangerZoneTitle}>Account Actions</Text>
           
           <TouchableOpacity style={styles.dangerButton}>
@@ -159,163 +161,214 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF', // Figma-aligned white background
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 60,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24, // Figma screen padding
     paddingBottom: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
   },
   cancelButton: {},
   cancelButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
+    fontSize: 14, // Inter button text
+    fontWeight: '500',
+    color: '#67AAF9', // Figma blue accent
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20, // Archivo section header
+    fontWeight: '600',
+    color: '#171A1F', // Figma primary text
   },
   saveButton: {},
   saveButtonActive: {},
   saveButtonText: {
-    fontSize: 16,
-    color: '#ccc',
-    fontWeight: '600',
+    fontSize: 14, // Inter button text
+    fontWeight: '500',
+    color: '#565D6D', // Figma secondary color for disabled
   },
   saveButtonTextActive: {
-    color: '#007AFF',
+    color: '#67AAF9', // Figma blue accent
   },
-  avatarSection: {
-    backgroundColor: 'white',
+  avatarCard: {
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     paddingVertical: 30,
+    marginHorizontal: 24, // Figma screen padding
+    marginTop: 20,
+    borderRadius: 10, // Figma card border radius
+    // Figma shadow specifications
+    shadowColor: 'rgba(23, 26, 31, 0.07)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 2,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#e0e0e0',
+    width: 80, // Match profile screen avatar size
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#DEE1E6', // Figma input background color
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
   },
   avatarText: {
-    fontSize: 40,
+    fontSize: 32, // Keep consistent with profile screen
   },
   changePhotoButton: {},
   changePhotoText: {
     fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: '#67AAF9', // Figma blue accent
+    fontWeight: '500', // Inter weight
   },
-  form: {
-    padding: 20,
+  formContainer: {
+    paddingHorizontal: 24, // Figma screen padding
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 10, // Figma card border radius
+    marginTop: 20,
+    // Figma shadow specifications
+    shadowColor: 'rgba(23, 26, 31, 0.07)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 2,
   },
   inputGroup: {
-    marginBottom: 25,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 16, // Inter form label
+    fontWeight: '500',
     marginBottom: 8,
-    color: '#333',
-  },
-  sublabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 15,
+    color: '#171A1F', // Figma primary text
   },
   input: {
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: '#DEE1E6', // Figma input background
+    paddingHorizontal: 12, // Figma input padding
+    paddingVertical: 11,
+    borderRadius: 6, // Figma border radius system
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    fontSize: 16,
+    borderColor: '#DEE1E6', // Figma border color
+    fontSize: 14, // Inter body text
+    color: '#171A1F', // Figma primary text
   },
   inputNote: {
     fontSize: 12,
-    color: '#666',
+    color: '#565D6D', // Figma secondary text
     marginTop: 5,
+  },
+  voiceSection: {
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 20, // Archivo section header
+    fontWeight: '600',
+    color: '#171A1F', // Figma primary text
+    marginBottom: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 14, // Inter body text
+    color: '#565D6D', // Figma secondary text
+    marginBottom: 16,
   },
   voiceOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10, // Figma selection container radius
     marginBottom: 8,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderWidth: 1,
+    borderColor: '#DEE1E6', // Figma default border
+    // Figma shadow specifications
+    shadowColor: 'rgba(23, 26, 31, 0.07)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 2,
   },
   voiceOptionSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f8ff',
+    borderColor: '#67AAF9', // Figma selected border
+    backgroundColor: '#FAFAFB', // Figma secondary background for selection
   },
   voiceInfo: {
     flex: 1,
   },
   voiceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 16, // Inter form label size
+    fontWeight: '500',
+    color: '#171A1F', // Figma primary text
     marginBottom: 4,
   },
   voiceDescription: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 14, // Inter body text
+    color: '#565D6D', // Figma secondary text
   },
   previewButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DEE1E6', // Figma border color
+    borderRadius: 6, // Figma border radius
   },
   previewButtonText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#67AAF9', // Figma blue accent
+    fontWeight: '500',
   },
-  dangerZone: {
+  dangerZoneCard: {
     marginTop: 30,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 10, // Figma card border radius
+    // Figma shadow specifications
+    shadowColor: 'rgba(23, 26, 31, 0.07)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 1,
+    elevation: 2,
   },
   dangerZoneTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
+    fontSize: 20, // Archivo section header
+    fontWeight: '600',
+    color: '#171A1F', // Figma primary text
+    marginBottom: 16,
   },
   dangerButton: {
-    backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 8,
+    padding: 16, // 48px minimum touch target
+    borderRadius: 6, // Figma border radius
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#DEE1E6', // Figma border color
+    backgroundColor: '#FAFAFB', // Figma secondary background
   },
   deleteButton: {
     borderColor: '#ff3b30',
     backgroundColor: '#fff5f5',
   },
   dangerButtonText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: 16, // Inter form label size
+    fontWeight: '500',
+    color: '#171A1F', // Figma primary text
   },
   deleteButtonText: {
     color: '#ff3b30',
   },
   dangerButtonArrow: {
     fontSize: 18,
-    color: '#ccc',
+    color: '#565D6D', // Figma secondary color
   },
   bottomPadding: {
     height: 40,
