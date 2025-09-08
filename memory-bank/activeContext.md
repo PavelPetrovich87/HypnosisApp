@@ -1,33 +1,40 @@
 # Active Context
 
 ## Current Focus
-**Awaiting Next Task**: CRM-34 (MVVM State Management Architecture) has been fully completed, implemented, reflected upon, and archived. Ready for the next task assignment.
+**Active Task**: No active task - ready for next assignment
+- **Status**: AWAITING NEW TASK ⏳
+- **Complexity**: N/A
+- **Priority**: N/A
 
-## Previous Task Completed ✅
-- **Task**: CRM-34 - MVVM State Management Architecture Implementation
+## Recent Task Completed ✅
+- **Task**: CRM-35 - Backend Registration Integration with AuthService
 - **Status**: COMPLETED ✅
-- **Archive**: [CRM-34 MVVM Architecture Archive](/memory-bank/archive/archive-crm34-mvvm-architecture.md)
+- **Archive**: [CRM-35 Backend Registration Archive](/memory-bank/archive/archive-crm35-backend-registration.md)
 - **Quality**: ⭐⭐⭐⭐⭐ (5/5) - Exceeds Requirements
 
-## Project Foundation Established
+## Project Foundation
 ### State Management Architecture
 - **Domain-Separated Stores**: 5 Zustand stores implemented (Auth, User, Session, Playback, App)
-- **Service Layer**: ErrorService and NetworkService implemented with layered error handling
+- **Service Layer**: ErrorService, NetworkService and AuthService implemented with layered error handling
 - **ViewModel Layer**: AuthViewModel implemented with factory pattern for dependency injection
 - **TypeScript Integration**: 100% type coverage with strict mode compliance
 
 ### Architecture Highlights
 - **Performance Optimized**: Selective subscriptions, computed selectors, efficient updates
-- **Mobile-First**: React Native compatibility with memory and bundle optimization
+- **Mobile-First**: React Native compatibility with environment detection
 - **Offline Support**: Comprehensive offline/online state management with sync queues
 - **Error Resilience**: Three-layer error handling with user-friendly recovery
+- **Feature Flags**: Toggle optional features without code changes
 
 ## Current Project State
-- MVVM architecture fully implemented and ready for UI integration
-- Profile screens redesigned with Figma specifications (CRM-33 complete)
-- Onboarding flow screens exist with comprehensive functionality
+- MVVM architecture fully implemented with service layer
+- Profile screens redesigned with Figma specifications
+- Onboarding flow complete with backend registration
 - Main app screens implemented with existing navigation
 - Project structure established with Expo Router and TypeScript
+- **NEW**: AuthService integration and backend registration complete
+- **NEW**: Voice preview component with feature flag support added
+- **NEW**: React Native compatibility issues resolved
 
 ## Development Environment
 - React Native v0.79.6 with Expo v53.0.22
@@ -35,14 +42,21 @@
 - Zustand v4.4.1 (state management)
 - Modern folder structure with domain separation
 
-## Ready for Next Steps
-1. **UI Integration**: Connect existing screens to the new MVVM architecture
-2. **Unit Testing**: Implement tests for ViewModels and services
-3. **Feature Development**: Build new features on top of the solid architecture
-4. **Performance Optimization**: Fine-tune state management for mobile devices
+## Recent Achievements
+- Implemented comprehensive AuthService with dependency injection
+- Added mock adapter for development without backend
+- Created feature-flagged voice preview component
+- Fixed React Native window API compatibility issues
+- Added detailed error handling with user-friendly messages
 
-## Next Task Options
-- UI integration with new MVVM architecture
-- Additional ViewModels implementation (HomeViewModel, PlaybackViewModel)
-- Unit testing implementation for existing architecture
-- New feature development leveraging the MVVM foundation
+## Next Steps
+1. Receive next task assignment
+2. Update this context with new task details
+3. Begin planning phase for the next task
+
+## Available Documentation
+- **Class Diagram**: [class-diagram-mvvm.md](/diagrams/class-diagram-mvvm.md)
+- **Component Diagram**: [component-diagram.md](/diagrams/component-diagram.md)
+- **Onboarding Sequence**: [onboarding-sequence-diagram.md](/diagrams/onboarding-sequence-diagram.md)
+- **Session Generation**: [session-generation-quick-sequence.md](/diagrams/session-generation-quick-sequence.md)
+- **Offline Download**: [offline-download-sequence.md](/diagrams/offline-download-sequence.md)

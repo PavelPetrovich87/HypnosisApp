@@ -1,8 +1,11 @@
 // Auth ViewModel - MVVM Pattern Implementation
 // Following creative phase specifications for ViewModels coordinating business logic
+// CRM-35: Integrated with AuthService for backend registration
 
 import { useAuthStore, useUserStore } from '../state';
 import { Services, ErrorService, AuthError, NetworkError } from '../services';
+import { authService } from '../services/authService';
+import { AuthError as ServiceAuthError, RegisterRequest } from '../services/types/auth.types';
 
 // Types
 export interface LoginCredentials {
@@ -15,6 +18,7 @@ export interface RegisterData {
   password: string;
   firstName?: string;
   lastName?: string;
+    voicePreference?: string; // CRM-35: Voice preference integration
 }
 
 export interface EmailVerificationData {
@@ -133,39 +137,74 @@ export class AuthViewModel {
     }
   }
   
-  // Registration flow coordination  
+    // Registration flow coordination - CRM-35: Updated to use AuthService
   async register(data: RegisterData): Promise<void> {
-    console.log('📝 AuthViewModel: Starting registration flow');
+      console.log('📝 AuthViewModel: Starting registration flow with AuthService');
+
+      // Prevent multiple submissions
+      if (useAuthStore.getState().isLoading) {
+          console.log('⚠️ AuthViewModel: Registration already in progress');
+          return;
+      }
     
     try {
-      // Step 1: Validate registration data
+        // Step 1: Set loading state
+        useAuthStore.getState().setLoading(true);
+        useAuthStore.getState().clearError();
+
+        // Step 2: Validate registration data using existing validation
       const validation = this.validateRegistrationData(data);
       if (!validation.isValid) {
         const errorMessage = Object.values(validation.errors).join(', ');
-        throw new Error(errorMessage);
+          throw new ServiceAuthError('VALIDATION_ERROR', errorMessage, 'general');
       }
       
-      // Step 2: Attempt registration through auth store
-      await useAuthStore.getState().register(data.email, data.password);
+        // Step 3: Prepare registration request for AuthService
+        const registerRequest: RegisterRequest = {
+            email: data.email,
+            password: data.password,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            voicePreference: data.voicePreference // CRM-35: Include voice preference
+        };
       
-      // Step 3: Set up initial user profile
-      if (useAuthStore.getState().isAuthenticated) {
-        console.log('✅ AuthViewModel: Registration successful, setting up profile');
+        // Step 4: Call AuthService.register()
+        console.log('🔐 AuthViewModel: Calling AuthService.register()');
+        const response = await authService.register(registerRequest);
+
+        // Step 5: Update GlobalState with auth result
+        console.log('✅ AuthViewModel: Registration successful, updating stores');
+
+        // Update auth store with token and authentication status
+        const authStore = useAuthStore.getState();
+        (authStore as any).isAuthenticated = true;
+        (authStore as any).token = response.token;
+        (authStore as any).verificationStatus = response.requiresVerification ? 'required' : 'verified';
+
+        // Update user store with user data
+        const userStore = useUserStore.getState();
+        (userStore as any).current = response.user;
+
+        // Step 6: Set up initial user profile with additional data
         await this.setupInitialProfile(data);
-        
-        // Step 4: Handle email verification requirement
-        const verificationStatus = useAuthStore.getState().verificationStatus;
-        if (verificationStatus === 'required') {
-          await this.handleEmailVerificationRequired();
+
+        // Step 7: Handle navigation flow
+        if (response.requiresVerification) {
+            console.log('📧 AuthViewModel: Email verification required');
+            await this.handleEmailVerificationRequired();
         } else {
-          await this.handlePostLoginNavigation();
+            await this.handlePostLoginNavigation();
         }
-      }
+
+        console.log('✅ AuthViewModel: Registration flow completed successfully');
       
     } catch (error) {
       console.error('❌ AuthViewModel: Registration failed:', error);
-      this.handleAuthError(error as Error, 'register');
+        this.handleRegistrationError(error as ServiceAuthError);
       throw error;
+    } finally {
+        // Always clear loading state
+        useAuthStore.getState().setLoading(false);
     }
   }
   
@@ -301,16 +340,27 @@ export class AuthViewModel {
     }
   }
   
+    // CRM-35: Enhanced email verification navigation
   private async handleEmailVerificationRequired(): Promise<void> {
-    console.log('📧 AuthViewModel: Email verification required');
+      const userStore = useUserStore.getState();
+      const userEmail = userStore.current?.email;
+
+      console.log('📧 AuthViewModel: Email verification required', { email: userEmail });
     
     // This will be integrated when NavigationService is available
     // NavigationService.navigate('VerifyEmail', {
-    //   email: useAuthStore.getState().currentUser?.email
+      //   email: userEmail
     // });
     
-    // For now, just log
-    console.log('📱 Should navigate to email verification screen');
+      // For now, emit navigation intent that can be captured by UI
+      console.log('📱 AuthViewModel: Navigation intent - VerifyEmail', { email: userEmail });
+
+      // Store the navigation intent in auth store for UI consumption
+      const authStore = useAuthStore.getState();
+      (authStore as any).navigationIntent = {
+          target: 'VerifyEmail',
+          params: { email: userEmail }
+      };
   }
   
   private async handlePostLoginNavigation(): Promise<void> {
@@ -346,6 +396,52 @@ export class AuthViewModel {
     console.log('✅ AuthViewModel: Post-logout cleanup complete');
   }
   
+    // CRM-35: Enhanced error handling for AuthService errors
+    private handleRegistrationError(error: ServiceAuthError): void {
+        console.error('🚨 AuthViewModel: Handling registration error', {
+            code: error.code,
+            message: error.message,
+            field: error.field
+        });
+
+        // Set the error message in the auth store for UI display
+        const authStore = useAuthStore.getState();
+
+        switch (error.code) {
+            case 'DUPLICATE_EMAIL':
+                // Field-specific error for email
+                (authStore as any).error = error.message;
+                console.log('📧 AuthViewModel: Duplicate email error - suggest login flow');
+                break;
+
+            case 'WEAK_PASSWORD':
+                // Field-specific error for password
+                (authStore as any).error = error.message;
+                console.log('🔒 AuthViewModel: Weak password error - show password requirements');
+                break;
+
+            case 'NETWORK_ERROR':
+                // General retry message for network issues
+                (authStore as any).error = error.message;
+                console.log('🌐 AuthViewModel: Network error - suggest retry');
+                break;
+
+            case 'VALIDATION_ERROR':
+                // Validation errors - usually field-specific
+                (authStore as any).error = error.message;
+                console.log('✅ AuthViewModel: Validation error - highlight field');
+                break;
+
+            default:
+                // Generic fallback error message
+                (authStore as any).error = error.message || 'Registration failed. Please try again.';
+                console.log('❓ AuthViewModel: Unknown error - show generic message');
+        }
+
+        // Also use the error service for consistent error handling
+        Services.handleError(error, 'auth.register');
+    }
+
   private handleAuthError(error: Error, context: string): void {
     // Use the error service for consistent error handling
     Services.handleError(error, `auth.${context}`);

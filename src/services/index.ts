@@ -4,10 +4,12 @@
 // Core services
 export { default as ErrorService } from './errorService';
 export { default as NetworkService } from './networkService';
+export { default as authService, AuthServiceImpl } from './authService';
 
 // Import for internal usage
 import ErrorService from './errorService';
 import NetworkService from './networkService';
+import authService from './authService';
 
 // Error types and utilities
 export type {
@@ -36,6 +38,23 @@ export type {
   RetryConfig
 } from './networkService';
 
+// Auth types and utilities - CRM-35
+export type {
+  RegisterRequest,
+  RegisterResponse,
+  LoginRequest,
+  LoginResponse,
+  AuthService,
+  AuthServiceConfig,
+  AuthErrorCode,
+  AuthErrorField
+} from './types/auth.types';
+
+export {
+  AuthError as ServiceAuthError,
+  AUTH_ERROR_MESSAGES
+} from './types/auth.types';
+
 // Service initialization and management
 export interface ServiceConfiguration {
   errorService: {
@@ -47,6 +66,11 @@ export interface ServiceConfiguration {
     enabled: boolean;
     offlineQueueEnabled: boolean;
     retryAttempts: number;
+  };
+  authService: {
+    enabled: boolean;
+    mockMode: boolean;
+    timeout: number;
   };
 }
 
@@ -60,6 +84,11 @@ const defaultServiceConfig: ServiceConfiguration = {
     enabled: true,
     offlineQueueEnabled: true,
     retryAttempts: 3
+  },
+  authService: {
+    enabled: true,
+    mockMode: true, // Use mock service for development
+    timeout: 10000
   }
 };
 
@@ -86,16 +115,23 @@ export class ServiceManager {
         console.log('✅ ErrorService ready');
       }
       
-      // Initialize NetworkService (already auto-initialized)
+      // Initialize NetworkService - CRM-35: React Native compatible
       if (this.config.networkService.enabled) {
+        // In React Native, NetworkService isn't auto-initialized, so we need to do it here
+        if (typeof window === 'undefined') {
+          NetworkService.initialize();
+        }
         console.log('✅ NetworkService ready');
       }
       
-      // Additional services will be initialized here when created
-      // if (this.config.authService.enabled) {
-      //   await AuthService.initialize();
-      //   console.log('✅ AuthService initialized');
-      // }
+      // Initialize AuthService - CRM-35
+      if (this.config.authService.enabled) {
+        authService.updateConfig({
+          enableMockMode: this.config.authService.mockMode,
+          timeout: this.config.authService.timeout
+        });
+        console.log('✅ AuthService initialized');
+      }
       
       this.initialized = true;
       console.log('🎉 ServiceManager initialization complete');
@@ -128,14 +164,17 @@ export class ServiceManager {
     services: {
       errorService: 'healthy' | 'unhealthy';
       networkService: 'healthy' | 'unhealthy';
+      authService: 'healthy' | 'unhealthy';
     };
   }> {
     const results: {
       errorService: 'healthy' | 'unhealthy';
       networkService: 'healthy' | 'unhealthy';
+      authService: 'healthy' | 'unhealthy';
     } = {
       errorService: 'healthy',
-      networkService: 'healthy'
+      networkService: 'healthy',
+      authService: 'healthy'
     };
     
     try {
@@ -152,10 +191,17 @@ export class ServiceManager {
         results.networkService = networkStatus ? 'healthy' : 'unhealthy';
       }
       
+      // Check AuthService - CRM-35
+      if (this.config.authService.enabled) {
+        // AuthService is healthy if it's initialized and configured
+        results.authService = authService.isInMockMode() !== undefined ? 'healthy' : 'unhealthy';
+      }
+
     } catch (error) {
       console.error('Health check failed:', error);
       results.errorService = 'unhealthy';
       results.networkService = 'unhealthy';
+      results.authService = 'unhealthy';
     }
     
     // Determine overall health
@@ -230,11 +276,21 @@ export const Services = {
   // Service health and status
   healthCheck: () => ServiceManager.healthCheck(),
   getConnectionQuality: () => NetworkService.getConnectionQuality(),
-  shouldPreloadContent: () => NetworkService.shouldPreloadContent()
+  shouldPreloadContent: () => NetworkService.shouldPreloadContent(),
+
+  // Auth operations - CRM-35
+  register: (request: any) => authService.register(request),
+  login: (request: any) => authService.login(request),
+  logout: () => authService.logout(),
+  verifyEmail: (request: any) => authService.verifyEmail(request),
+  refreshToken: (request: any) => authService.refreshToken(request),
+  isAuthServiceInMockMode: () => authService.isInMockMode()
 };
 
 // Auto-initialize services on import (with basic config)
-if (typeof window !== 'undefined') {
+// CRM-35: Fixed for React Native compatibility
+if (typeof window !== 'undefined' || (typeof global !== 'undefined' && typeof window === 'undefined')) {
+// Initialize in both web and React Native environments
   ServiceManager.initialize().catch(error => {
     console.error('Failed to auto-initialize ServiceManager:', error);
   });

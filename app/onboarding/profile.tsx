@@ -1,13 +1,10 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-
-const VOICES = [
-  { id: 'female1', name: 'Sarah', description: 'Calm & Soothing', gender: 'female' },
-  { id: 'male1', name: 'David', description: 'Deep & Relaxing', gender: 'male' },
-  { id: 'female2', name: 'Emma', description: 'Gentle & Warm', gender: 'female' },
-  { id: 'male2', name: 'Michael', description: 'Confident & Clear', gender: 'male' },
-];
+5 // CRM-35: Voice Preview Integration
+import { VoicePreview } from '../../src/components/VoicePreview';
+import { FeatureFlagUtils } from '../../src/services/featureFlags';
+import { authViewModel } from '../../src/viewmodels/authViewModel';
 
 export default function ProfileScreen() {
   const [name, setName] = useState('');
@@ -15,19 +12,40 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleVoicePreview = (voiceId: string) => {
-    Alert.alert('Voice Preview', `Playing 10-second preview of ${VOICES.find(v => v.id === voiceId)?.name}`);
-  };
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Missing Information', 'Please fill in all required fields');
+      return;
+    }
 
-  const handleRegister = () => {
-    if (!name.trim() || !selectedVoice || !email.trim() || !password.trim()) {
-      Alert.alert('Missing Information', 'Please fill in all fields');
+    // Voice selection is optional if feature flag is disabled
+    if (FeatureFlagUtils.isVoicePreviewEnabled() && !selectedVoice) {
+      Alert.alert('Missing Information', 'Please select a voice for your sessions');
       return;
     }
     
-    // Save profile data (would normally save to state/storage)
-    console.log('Profile data:', { name, selectedVoice, email });
-    router.push('/onboarding/verify-email');
+    try {
+      console.log('🚀 Profile: Starting registration with AuthViewModel');
+
+      // Use AuthViewModel for registration - CRM-35
+      await authViewModel.register({
+        email: email.trim(),
+        password: password.trim(),
+        firstName: name.trim(),
+        voicePreference: selectedVoice
+      });
+
+      console.log('✅ Profile: Registration successful');
+      // Navigation will be handled by AuthViewModel based on verification status
+
+    } catch (error: any) {
+      console.error('❌ Profile: Registration failed:', error);
+      Alert.alert(
+        'Registration Error',
+        error?.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (
@@ -69,40 +87,27 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Choose Your Voice</Text>
-          <Text style={styles.sublabel}>Select the voice for your hypnosis sessions</Text>
-          
-          {VOICES.map((voice) => (
-            <TouchableOpacity
-              key={voice.id}
-              style={[
-                styles.voiceOption,
-                selectedVoice === voice.id && styles.voiceOptionSelected
-              ]}
-              onPress={() => setSelectedVoice(voice.id)}
-            >
-              <View style={styles.voiceInfo}>
-                <Text style={styles.voiceName}>
-                  {voice.gender === 'female' ? '👩' : '👨'} {voice.name}
-                </Text>
-                <Text style={styles.voiceDescription}>{voice.description}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.previewButton}
-                onPress={() => handleVoicePreview(voice.id)}
-              >
-                <Text style={styles.previewButtonText}>▶️ Preview</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* CRM-35: Voice Preview Integration - conditionally show based on feature flag */}
+        <VoicePreview
+          selectedVoice={selectedVoice}
+          onVoiceSelect={setSelectedVoice}
+          onVoicePreview={(voiceId) => console.log('🎵 Voice preview:', voiceId)}
+          showTitle={true}
+        />
       </View>
 
       <TouchableOpacity 
-        style={[styles.button, (!name.trim() || !selectedVoice || !email.trim() || !password.trim()) && styles.buttonDisabled]} 
+        style={[
+          styles.button,
+          // Only require voice selection if feature flag is enabled
+          (!name.trim() || !email.trim() || !password.trim() ||
+            (FeatureFlagUtils.isVoicePreviewEnabled() && !selectedVoice)) && styles.buttonDisabled
+        ]} 
         onPress={handleRegister}
-        disabled={!name.trim() || !selectedVoice || !email.trim() || !password.trim()}
+        disabled={
+          !name.trim() || !email.trim() || !password.trim() ||
+          (FeatureFlagUtils.isVoicePreviewEnabled() && !selectedVoice)
+        }
       >
         <Text style={styles.buttonText}>Create Account</Text>
       </TouchableOpacity>
@@ -150,44 +155,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     fontSize: 16,
   },
-  voiceOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
-  voiceOptionSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f8ff',
-  },
-  voiceInfo: {
-    flex: 1,
-  },
-  voiceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  voiceDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  previewButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 6,
-  },
-  previewButtonText: {
-    fontSize: 12,
-    color: '#007AFF',
-  },
+
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 16,

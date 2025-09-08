@@ -3,6 +3,89 @@
 ## Directory Structure
 - `/Users/macintoshhd/WebstormProjects/hypnosis_app_2/HypnosisApp/src/screens/`: Created and verified
 
+## December 19, 2024: CRM-35 Backend Registration Integration - PLANNING PHASE 🔄
+
+### Task Overview
+- **Task**: CRM-35 - Backend Registration Integration with AuthService
+- **Status**: PLANNING PHASE 🔄
+- **Complexity**: Level 2 (Simple Enhancement)
+- **Priority**: High
+
+### Planning Results
+- **Implementation Plan**: Comprehensive 4-phase approach defined
+  - **Phase 1**: AuthService Implementation with mock adapters
+  - **Phase 2**: ViewModel Integration with error handling
+  - **Phase 3**: Voice Preview Integration (optional, behind feature flag)
+  - **Phase 4**: Testing Implementation (unit and integration tests)
+
+### Key Components Planned
+- **AuthService**: Register method with error normalization
+- **Error Handling**: User-friendly error codes (DUPLICATE_EMAIL, WEAK_PASSWORD, NETWORK, UNKNOWN)
+- **Mock Implementation**: Realistic mock adapter for development without backend
+- **Voice Preview**: Optional step behind feature flag
+- **Navigation Flow**: Integration with existing VerifyEmail screen
+- **State Management**: GlobalState updates on successful registration
+
+### Technical Approach
+- **Service Pattern**: Dependency injection for easy AuthService swapping
+- **Error Normalization**: Comprehensive error mapping to user-friendly messages
+- **Feature Flags**: Toggle for voice preview functionality
+- **TypeScript**: Strict mode compliance with comprehensive interfaces
+- **Testing Strategy**: Unit tests for ViewModel, integration tests for full flow
+
+### Files Planned for Creation
+```
+src/services/
+├── authService.ts            # AuthService implementation
+├── types/
+│   └── auth.types.ts         # Authentication type definitions
+├── adapters/
+│   └── mockAuthAdapter.ts    # Mock implementation
+└── featureFlags.ts           # Feature flag management
+
+src/components/
+└── VoicePreview.tsx          # Voice preview component (optional)
+
+__tests__/
+├── services/
+│   └── authService.test.ts   # AuthService unit tests
+├── viewmodels/
+│   └── authViewModel.test.ts # ViewModel integration tests
+└── integration/
+    └── registration.test.ts  # End-to-end registration tests
+```
+
+### Files Planned for Modification
+```
+src/viewmodels/
+└── authViewModel.ts          # Add register method integration
+
+src/state/
+└── authStore.ts              # Add register action (if needed)
+
+app/onboarding/
+└── profile.tsx               # Integrate voice preview (if enabled)
+```
+
+### Acceptance Criteria Defined
+- [ ] AuthService.register() method implemented with proper error handling
+- [ ] AuthViewModel.submit() successfully calls AuthService.register()
+- [ ] Successful registration updates GlobalState with token and user data
+- [ ] Navigation to VerifyEmail occurs after successful registration
+- [ ] Duplicate email shows actionable error message
+- [ ] Network errors show user-friendly retry message
+- [ ] All existing validation ACs remain intact
+- [ ] Voice preview step is optional and behind feature flag
+- [ ] Unit tests cover happy path and error scenarios
+- [ ] Integration tests verify GlobalState updates and navigation
+
+### Constraints & Considerations
+- **No Backend Available**: Must use mock adapters and interfaces
+- **Service Swappability**: Keep AuthService easily replaceable (DI pattern)
+- **Existing Architecture**: Integrate with existing MVVM architecture
+- **Feature Flags**: Voice preview must be toggleable
+- **Security**: Proper token storage (in-memory for now, TODO for secure persistence)
+
 ## September 7, 2024: CRM-34 MVVM State Architecture - FULLY COMPLETED ✅ ✅
 
 ### Implementation Results
