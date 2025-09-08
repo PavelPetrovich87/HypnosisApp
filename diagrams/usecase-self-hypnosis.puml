@@ -13,8 +13,9 @@ actor "Auth Provider\n(External)" as Auth
 
 rectangle "Self-Hypnosis Mobile App\n(React Native)" as App {
   package "Auth" {
-    usecase "Register/Login\n[Auth - Email Sign-in]" as UC_Login
-    usecase "Verify Email\n(resend timer, change-email/help)\n[Auth - Verification]" as UC_Verify
+    usecase "User Registration\n(email/password, validation)\n[Auth - Registration]" as UC_Registration
+    usecase "Email Verification\n(token validation, resend timer)\n[Auth - Verification]" as UC_Verify
+    usecase "User Login\n(existing account)\n[Auth - Authentication]" as UC_Login
   }
 
   package "Onboarding" {
@@ -44,7 +45,9 @@ rectangle "Self-Hypnosis Mobile App\n(React Native)" as App {
 }
 
 ' Primary interactions
+User --> UC_Registration
 User --> UC_Login
+User --> UC_Verify
 User --> UC_Goals
 User --> UC_OfflineInfo
 User --> UC_Profile
@@ -63,34 +66,52 @@ UC_CheckOffline --> Storage : "Query local files"
 UC_Play --> Storage : "Read local file (if offline)"
 
 ' Includes / Extends
-UC_Login .> UC_Verify : <<extend>>\n(email-based sign-up)
+UC_Registration .> UC_Verify : <<include>>\n(email verification required)
+UC_Login .> UC_Verify : <<extend>>\n(if email unverified)
 UC_Generate .> UC_ValidateQuota : <<include>>
 UC_Play .> UC_CheckOffline : <<include>>
 UC_Home .> UC_Suggested : <<include>>
 UC_Generate .> UC_Advanced : <<extend>>\n(when user opens Advanced)
+UC_Goals .> UC_Registration : <<extend>>\n(if user not registered)
 
 ' Quick vs Advanced tags
 UC_Generate <<Quick>>
 UC_Advanced <<Advanced>>
 
 ' State/variant notes
+note right of UC_Registration
+Registration flow: email/password → verification → onboarding.
+Token created during registration, stored in GlobalState.
+Duplicate email shows error with login suggestion.
+end note
+
+note right of UC_Verify
+Email verification: 45s resend timer, token validation.
+Required before accessing onboarding content.
+Failure redirects to registration retry.
+end note
+
 note right of UC_ValidateQuota
 Quota states: full, low, exhausted.
 If exhausted, show upgrade CTA (outside beta).
+Requires authenticated user (post-registration).
 end note
 
 note right of UC_Home
 During beta: show "Free beta – unlimited sessions" badge
 in Home and generation flows.
+Requires completed registration + verification.
 end note
 
 note right of UC_Play
 Offline: disable generation; surface downloaded sessions
 and local playback when offline.
+Requires completed registration for downloads.
 end note
 
 note right of UC_Download
 Show downloaded indicators on Home and Review.
+Only available after successful registration + verification.
 end note
 
 @enduml

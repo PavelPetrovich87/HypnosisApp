@@ -11,6 +11,7 @@ graph TB
             GoalsScreen[GoalsScreen]
             PermissionInfoScreen[PermissionInfoScreen]
             ProfileBasicsScreen[ProfileBasicsScreen]
+            RegistrationScreen[RegistrationScreen<br/>🔐 Email/Password Input]
             VerifyEmailScreen[VerifyEmailScreen]
         end
         
@@ -104,98 +105,96 @@ graph TB
     %% =================================
     %% COMPONENT RELATIONSHIPS
     %% =================================
-    
-    %% Screens use ViewModels (MVVM Pattern)
-    WelcomeScreen --> AuthViewModel
-    GoalsScreen --> AuthViewModel
-    ProfileBasicsScreen --> AuthViewModel
-    VerifyEmailScreen --> AuthViewModel
-    HomeScreen --> HomeViewModel
-    GenerateScreen --> SessionCreationViewModel
-    ReviewScreen --> AudioGenerationViewModel
-    PlaybackScreen --> PlaybackViewModel
-    SuccessScreen --> PlaybackViewModel
-    
-    %% Screens use NavigationService
-    WelcomeScreen --> NavigationService
-    GoalsScreen --> NavigationService
-    PermissionInfoScreen --> NavigationService
-    ProfileBasicsScreen --> NavigationService
-    VerifyEmailScreen --> NavigationService
-    GenerateScreen --> NavigationService
-    ReviewScreen --> NavigationService
-    ErrorScreen --> NavigationService
 
-    %% ViewModels use Services
-    AuthViewModel --> AuthService
-    AuthViewModel --> UserService
-    HomeViewModel --> SessionService
-    HomeViewModel --> UserService
-    HomeViewModel --> AudioService
-    SessionCreationViewModel --> SessionService
-    SessionCreationViewModel --> QuotaService
-    SessionCreationViewModel --> AudioGenerationViewModel
-    AudioGenerationViewModel --> AudioService
-    AudioGenerationViewModel --> SessionService
-    PlaybackViewModel --> AudioService
-    
-    %% ViewModels use Infrastructure Services
-    HomeViewModel --> PermissionService
-    AudioGenerationViewModel --> NetworkService
+    %% 🎯 PRIMARY MVVM FLOW: Screens → ViewModels (Blue arrows)
+    WelcomeScreen -->|"UI Event"| AuthViewModel
+    GoalsScreen -->|"UI Event"| AuthViewModel
+    ProfileBasicsScreen -->|"UI Event"| AuthViewModel
+    RegistrationScreen -->|"Register"| AuthViewModel
+    VerifyEmailScreen -->|"Verify"| AuthViewModel
+    HomeScreen -->|"Load Data"| HomeViewModel
+    GenerateScreen -->|"Create"| SessionCreationViewModel
+    ReviewScreen -->|"Generate"| AudioGenerationViewModel
+    PlaybackScreen -->|"Play"| PlaybackViewModel
+    SuccessScreen -->|"Actions"| PlaybackViewModel
 
-    %% Services use Repositories
-    SessionService --> SessionRepository
-    AudioService --> AudioRepository
-    UserService --> UserRepository
-    QuotaService --> QuotaRepository
-    AuthService --> UserRepository
-    AuthService --> CacheRepository
-    
-    %% Additional Service Dependencies
-    QuotaService --> GlobalState
-    AudioService --> PermissionService
+    %% 🧭 NAVIGATION FLOW: Screens → NavigationService (Orange arrows)
+    WelcomeScreen -.->|"Navigate"| NavigationService
+    GoalsScreen -.->|"Navigate"| NavigationService
+    PermissionInfoScreen -.->|"Navigate"| NavigationService
+    ProfileBasicsScreen -.->|"Navigate"| NavigationService
+    RegistrationScreen -.->|"Navigate"| NavigationService
+    VerifyEmailScreen -.->|"Navigate"| NavigationService
+    GenerateScreen -.->|"Navigate"| NavigationService
+    ReviewScreen -.->|"Navigate"| NavigationService
+    ErrorScreen -.->|"Navigate"| NavigationService
 
-    %% Services use Infrastructure
-    AudioService --> StorageService
-    AudioService --> AudioPlayer
-    SessionService --> NetworkService
-    SyncService --> NetworkService
-    PermissionService --> StorageService
+    %% 🔧 BUSINESS LOGIC: ViewModels → Services (Green arrows)
+    AuthViewModel -->|"Auth Ops"| AuthService
+    AuthViewModel -->|"User Data"| UserService
+    HomeViewModel -->|"Sessions"| SessionService
+    HomeViewModel -->|"User Data"| UserService
+    HomeViewModel -->|"Audio"| AudioService
+    SessionCreationViewModel -->|"Create"| SessionService
+    SessionCreationViewModel -->|"Check"| QuotaService
+    SessionCreationViewModel -.->|"Orchestrate"| AudioGenerationViewModel
+    AudioGenerationViewModel -->|"Generate"| AudioService
+    AudioGenerationViewModel -->|"Update"| SessionService
+    PlaybackViewModel -->|"Control"| AudioService
 
-    %% Repositories use External Systems
-    SessionRepository --> CloudStorage
-    AudioRepository --> CloudStorage
-    UserRepository --> AuthProvider
-    CacheRepository --> StorageService
+    %% ⚙️ INFRASTRUCTURE: ViewModels → Infra Services (Purple arrows)
+    HomeViewModel -.->|"Permissions"| PermissionService
+    AudioGenerationViewModel -.->|"Network"| NetworkService
 
-    %% Services use External Systems
-    AudioService --> LLMService
-    AudioService --> TTSService
-    AuthService --> AuthProvider
-    Analytics --> Analytics
+    %% 📊 DATA ACCESS: Services → Repositories (Red arrows)
+    SessionService -->|"CRUD"| SessionRepository
+    AudioService -->|"Storage"| AudioRepository
+    UserService -->|"Profile"| UserRepository
+    QuotaService -->|"Limits"| QuotaRepository
+    AuthService -->|"Auth Data"| UserRepository
+    AuthService -->|"Cache"| CacheRepository
 
-    %% State Management
-    GlobalState --> UserState
-    GlobalState --> AuthState
-    GlobalState --> SessionState
-    GlobalState --> PlaybackState
+    %% 🔄 SERVICE INTEGRATION: Services → Services (Brown arrows)
+    QuotaService -.->|"Update"| GlobalState
+    AudioService -.->|"Permissions"| PermissionService
 
-    %% ViewModels use State
-    AuthViewModel --> GlobalState
-    HomeViewModel --> GlobalState
-    SessionCreationViewModel --> GlobalState
-    AudioGenerationViewModel --> GlobalState
-    PlaybackViewModel --> GlobalState
+    %% 🏗️ INFRASTRUCTURE: Services → Infra Services (Gray arrows)
+    AudioService -.->|"Store"| StorageService
+    AudioService -.->|"Play"| AudioPlayer
+    SessionService -.->|"Network"| NetworkService
+    SyncService -.->|"Network"| NetworkService
+    PermissionService -.->|"Store"| StorageService
 
-    %% Shared Components
-    Header --> NavigationService
-    Navigation --> NavigationService
-    OfflineBadge --> NetworkService
-    QuotaBadge --> QuotaService
+    %% 🌐 EXTERNAL SYSTEMS: Components → External (Dark Blue arrows)
+    SessionRepository -.->|"Cloud"| CloudStorage
+    AudioRepository -.->|"Cloud"| CloudStorage
+    UserRepository -.->|"Auth"| AuthProvider
+    CacheRepository -.->|"Local"| StorageService
+    AudioService -.->|"AI"| LLMService
+    AudioService -.->|"TTS"| TTSService
+    AuthService -.->|"Auth"| AuthProvider
+    Analytics -.->|"Track"| Analytics
 
-    %% Error Handling
-    ErrorBoundary --> ErrorService
-    ErrorScreen --> ErrorService
+    %% 📱 STATE MANAGEMENT: GlobalState → States (Yellow arrows)
+    GlobalState -->|"Contains"| UserState
+    GlobalState -->|"Contains"| AuthState
+    GlobalState -->|"Contains"| SessionState
+    GlobalState -->|"Contains"| PlaybackState
+
+    %% 🔄 STATE ACCESS: ViewModels → GlobalState (Cyan arrows)
+    AuthViewModel -.->|"State"| GlobalState
+    HomeViewModel -.->|"State"| GlobalState
+    SessionCreationViewModel -.->|"State"| GlobalState
+    AudioGenerationViewModel -.->|"State"| GlobalState
+    PlaybackViewModel -.->|"State"| GlobalState
+
+    %% 🎨 UI INTEGRATION: Components → Services (Pink arrows)
+    Header -.->|"Navigate"| NavigationService
+    Navigation -.->|"Navigate"| NavigationService
+    OfflineBadge -.->|"Status"| NetworkService
+    QuotaBadge -.->|"Usage"| QuotaService
+    ErrorBoundary -.->|"Handle"| ErrorService
+    ErrorScreen -.->|"Display"| ErrorService
 
     %% =================================
     %% STYLING AND THEMES
@@ -215,6 +214,24 @@ graph TB
     PlaybackScreen --> ThemeProvider
 
     %% =================================
+    %% ARROW LEGEND
+    %% =================================
+    subgraph "Arrow Legend"
+        Legend1["→ → → SOLID ARROWS (Primary Flow)<br/>→ Primary MVVM: UI → ViewModel<br/>→ Business Logic: ViewModel → Service<br/>→ Data Access: Service → Repository<br/>→ State Management: GlobalState → States"]
+        Legend2["- - - DASHED ARROWS (Secondary Flow)<br/>-.-> Navigation: Screen → NavigationService<br/>-.-> Infrastructure: Component → Infra Service<br/>-.-> External: Component → External System<br/>-.-> State Access: ViewModel → GlobalState<br/>-.-> UI Integration: Component → Service"]
+    end
+
+    %% =================================
+    %% AC REFERENCES
+    %% =================================
+    %% AC-1: RegistrationScreen added to onboarding flow
+    %% AC-2: RegistrationScreen -> AuthViewModel -> AuthService boundary shown
+    %% AC-3: NavigationService integration maintained for RegistrationScreen
+    %% AC-4: MVVM pattern consistently applied across all screens
+    %% AC-5: Arrow types distinguished for better readability
+    %% AC-6: Flow types categorized with emojis and descriptions
+
+    %% =================================
     %% STYLING
     %% =================================
     classDef screenClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
@@ -227,25 +244,41 @@ graph TB
     classDef componentClass fill:#e0f2f1,stroke:#004d40,stroke-width:2px
 
     %% Apply styling
-    class WelcomeScreen,GoalsScreen,PermissionInfoScreen,ProfileBasicsScreen,VerifyEmailScreen,HomeScreen,GenerateScreen,ReviewScreen,PlaybackScreen,SuccessScreen,ErrorScreen screenClass
+    class WelcomeScreen,GoalsScreen,PermissionInfoScreen,ProfileBasicsScreen,RegistrationScreen,VerifyEmailScreen,HomeScreen,GenerateScreen,ReviewScreen,PlaybackScreen,SuccessScreen,ErrorScreen screenClass
     class AuthViewModel,HomeViewModel,SessionCreationViewModel,AudioGenerationViewModel,PlaybackViewModel viewModelClass
     class SessionService,AudioService,UserService,QuotaService,AuthService,NavigationService,ErrorService serviceClass
     class SessionRepository,AudioRepository,UserRepository,QuotaRepository,CacheRepository repositoryClass
     class StorageService,NetworkService,SyncService,PermissionService,AudioPlayer infrastructureClass
     class AuthProvider,LLMService,TTSService,CloudStorage,Analytics externalClass
     class GlobalState,UserState,AuthState,SessionState,PlaybackState stateClass
-    class Header,Navigation,LoadingSpinner,ErrorBoundary,OfflineBadge,QuotaBadge,ThemeProvider,ColorScheme,Typography,Spacing componentClass
+    class Header,Navigation,LoadingSpinner,ErrorBoundary,OfflineBadge,QuotaBadge,ThemeProvider,ColorScheme,Typography,Spacing,Legend1,Legend2 componentClass
 ```
 
 ## Component Architecture Notes
 
+### 🎨 **Arrow Type Legend**
+
+#### **Solid Arrows (→) - Primary Flow**
+- **🎯 Blue**: UI Events - Screens trigger ViewModel actions
+- **🔧 Green**: Business Logic - ViewModels orchestrate Services
+- **📊 Red**: Data Access - Services persist/retrieve from Repositories
+- **🟡 Yellow**: State Composition - GlobalState contains domain states
+
+#### **Dashed Arrows (-.->) - Secondary Flow**
+- **🧭 Orange**: Navigation - Screens use NavigationService for routing
+- **⚙️ Purple**: Infrastructure - Components access device capabilities
+- **🌐 Dark Blue**: External Systems - Components integrate with external APIs
+- **🔄 Cyan**: State Access - ViewModels read/write application state
+- **🎨 Pink**: UI Integration - Shared components use services
+
 ### 🏗️ **Architecture Layers**
 
 #### **1. React Native Components (UI Layer)**
-- **Onboarding Flow**: Welcome → Goals → Permissions → Profile → Verification
+- **Onboarding Flow**: Welcome → Goals → Permissions → Profile → Registration → Verification
 - **Main App Screens**: Home, Generate, Review, Playback, Success, Error
 - **Shared Components**: Header, Navigation, Loading, Error handling, Badges
 - **Styling System**: Theme provider, color schemes, typography, spacing
+- **Registration Integration**: Dedicated RegistrationScreen for email/password input
 
 #### **2. ViewModels (MVVM Business Logic)**
 - **AuthViewModel**: Handles authentication flow and user management
@@ -344,3 +377,4 @@ graph TB
 - **Quota Badges**: Usage information and limits
 
 This component diagram shows a clean, layered architecture that follows React Native best practices and your MVVM pattern, with clear separation of concerns between UI, business logic, data access, and external integrations.
+```

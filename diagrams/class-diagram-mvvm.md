@@ -57,6 +57,10 @@ classDiagram
     +app: AppState
     +dispatch(action) void
     +subscribe(listener) void
+    +getCurrentUser() User | null
+    +isAuthenticated() boolean
+    +getToken() string | null
+    +getVerificationStatus() VerificationStatus
   }
   
   class UserState {
@@ -72,6 +76,8 @@ classDiagram
     +token: string | null
     +isLoading: boolean
     +verificationStatus: VerificationStatus
+    +error: string | null
+    +navigationIntent: NavigationIntent | null
   }
   
   class SessionState {
@@ -95,6 +101,7 @@ classDiagram
   %% =================================
   class AuthViewModel {
     +login(email, password) Promise~void~
+    +register(data) Promise~void~
     +registerOrLogin(email, password) Promise~void~
     +sendVerificationEmail(email) Promise~void~
     +resendVerification() Promise~void~
@@ -104,6 +111,9 @@ classDiagram
     +saveSelectedGoals(goals) Promise~void~
     +saveProfile(profile) Promise~void~
     +previewVoice(voiceId) Promise~void~
+    +validateRegistrationData(data) AuthValidationResult
+    +validateLoginCredentials(credentials) AuthValidationResult
+    +handleRegistrationError(error) void
     -authService: AuthService
     -userService: UserService
     -state: GlobalState
@@ -175,16 +185,16 @@ classDiagram
   }
   
   class AuthService {
-    +signIn(email, password) Promise~AuthResult~
-    +signUp(email, password) Promise~User~
-    +register(email, password, profile) Promise~User~
-    +sendVerification(email) Promise~void~
-    +resendVerificationLink() Promise~void~
-    +verificationConfirmed() Promise~void~
-    +signOut() Promise~void~
-    +refreshToken() Promise~string~
-    -apiClient: ApiClient
-    -cacheService: CacheService
+    +register(request) Promise~RegisterResponse~
+    +login(request) Promise~LoginResponse~
+    +verifyEmail(request) Promise~VerifyEmailResponse~
+    +refreshToken(request) Promise~RefreshTokenResponse~
+    +logout() Promise~void~
+    +validateRegisterRequest(request) void
+    +validateLoginRequest(request) void
+    +normalizeError(error) AuthError
+    -adapter: AuthService
+    -config: AuthServiceConfig
   }
   
   class UserService {
@@ -457,6 +467,22 @@ classDiagram
   Session --> SessionStatus
   User --> UserProfile
   User --> QuotaInfo
+
+  %% =================================
+  %% ERROR FLOW (Duplicate Email)
+  %% =================================
+  note right of AuthViewModel : **Duplicate Email Error Flow:**\n1. User submits registration\n2. AuthViewModel → AuthService.register()\n3. AuthService detects DUPLICATE_EMAIL\n4. AuthError thrown with DUPLICATE_EMAIL code\n5. AuthViewModel.handleRegistrationError()\n6. Error stored in GlobalState\n7. UI shows "Email already exists" message\n8. User can try login instead
+  end note
+
+  %% =================================
+  %% AC REFERENCES
+  %% =================================
+  %% AC-1: AuthViewModel includes registration validation methods
+  %% AC-2: AuthService shows detailed registration flow methods
+  %% AC-3: GlobalState includes token and verification status getters
+  %% AC-4: Error flow for duplicate email documented
+  %%
+  %% Error Flow AC: Duplicate email error properly handled through MVVM layers
 ```
 
 ## Improved Mobile Architecture Notes
@@ -475,6 +501,7 @@ classDiagram
 - **ViewModels**: Coordinate between UI and services, manage screen state
 - **Services**: Encapsulate business logic and external dependencies
 - **State**: Centralized, predictable state management
+- **Registration Flow**: AuthViewModel → AuthService → GlobalState with proper error handling
 
 ### 🏗️ **Mobile-First Design Patterns**
 
@@ -552,3 +579,4 @@ classDiagram
 - **Networking**: React Query for server state
 - **Audio**: react-native-track-player
 - **Error Reporting**: Flipper/Sentry integration
+```

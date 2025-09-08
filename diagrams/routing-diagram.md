@@ -17,12 +17,14 @@ graph TB
         GoalsScreen[GoalsScreen<br/>🎯 Multi-select goals]
         PermissionInfoScreen[PermissionInfoScreen<br/>📱 Storage & offline info]
         ProfileBasicsScreen[ProfileBasicsScreen<br/>👤 Name & voice selection]
+        RegistrationScreen[RegistrationScreen<br/>🔐 Email & password registration]
         VerifyEmailScreen[VerifyEmailScreen<br/>📧 Email verification]
         
         WelcomeScreen -->|"Get Started"| GoalsScreen
         GoalsScreen -->|"Continue"| PermissionInfoScreen
         PermissionInfoScreen -->|"Continue"| ProfileBasicsScreen
-        ProfileBasicsScreen -->|"Register/Login"| VerifyEmailScreen
+        ProfileBasicsScreen -->|"Continue"| RegistrationScreen
+        RegistrationScreen -->|"Registration Complete"| VerifyEmailScreen
         VerifyEmailScreen -->|"Email Verified"| AuthComplete{Verification<br/>Complete}
     end
     
@@ -174,7 +176,14 @@ graph TB
     GenerateLink --> GenerateScreen
     ProfileLink --> ProfileScreen
     VerifyLink --> VerifyEmailScreen
-    
+
+    %% =================================
+    %% AC REFERENCES
+    %% =================================
+    %% AC-1: Registration route added before VerifyEmail
+    %% AC-2: MVVM navigation pattern maintained
+    %% AC-3: Consistent route naming across diagrams
+
     %% =================================
     %% STYLING
     %% =================================
@@ -188,7 +197,7 @@ graph TB
     classDef decisionClass fill:#fff9c4,stroke:#f57f17,stroke-width:2px
     
     %% Apply styling
-    class WelcomeScreen,GoalsScreen,PermissionInfoScreen,ProfileBasicsScreen,VerifyEmailScreen onboardingClass
+    class WelcomeScreen,GoalsScreen,PermissionInfoScreen,ProfileBasicsScreen,RegistrationScreen,VerifyEmailScreen onboardingClass
     class HomeScreen,GenerateScreen,ReviewScreen,PlaybackScreen,SuccessScreen,HomeTab homeStackClass
     class LibraryScreen,SessionDetailScreen,DownloadsScreen,LibraryTab libraryStackClass
     class ProfileScreen,EditProfileScreen,PreferencesScreen,QuotaScreen,ProfileTab profileStackClass
@@ -218,11 +227,12 @@ graph TB
 
 #### **Onboarding Flow**
 ```
-Welcome → Goals → Permissions → Profile → Verify Email → Home
+Welcome → Goals → Permissions → Profile → Registration → Verify Email → Home
 ```
 - **Linear Progress**: Each step builds on the previous
 - **No Back Navigation**: Prevents incomplete onboarding
-- **Authentication Gate**: Must complete to access main app
+- **Authentication Gate**: Must complete registration and verification to access main app
+- **Registration Integration**: Email/password registration before email verification
 
 #### **Main App Tabs**
 - **Home Tab**: Dashboard, generation, and playback
@@ -317,4 +327,5 @@ graph LR
 - **Gesture Support**: Alternative navigation methods
 
 This routing diagram provides a comprehensive view of how users navigate through the self-hypnosis app, ensuring a smooth and intuitive experience from onboarding through daily usage.
+```
 

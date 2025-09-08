@@ -16,6 +16,7 @@ sequenceDiagram
     participant NetworkService
 
     Note over User, NetworkService: Offline Download & Availability Flow - Proper MVVM Pattern
+    note right: **Precondition: Registration is Online-Only**<br/>- User registration requires network connectivity<br/>- Email verification must be completed online<br/>- Token creation and storage happens during registration<br/>- Offline mode available only after successful registration
 
     %% User Opens Session
     User->>HomeScreen: Open recent/suggested session
@@ -111,7 +112,36 @@ sequenceDiagram
     end
 
     Note over User, NetworkService: Offline availability properly reflected across all screens with MVVM compliance
+
+    %% =================================
+    %% AC REFERENCES
+    %% =================================
+    %% AC-1: Online-only precondition for registration documented
+    %% AC-2: Email verification online requirement noted
+    %% AC-3: Token creation during registration mentioned
+    %% AC-4: Offline mode available post-registration
 ```
+
+## Offline Download & Registration Integration Notes
+
+### 🔗 **Registration & Offline Mode Integration**
+
+#### **Online-Only Registration Flow**
+- **Network Dependency**: Registration requires active internet connection
+- **Email Verification**: Verification emails and token validation need connectivity
+- **Token Storage**: JWT tokens created and stored during successful registration
+- **GlobalState Update**: Authentication state managed through GlobalState post-registration
+
+#### **Offline Availability Post-Registration**
+- **Session Downloads**: Available only after user completes registration and verification
+- **Token Persistence**: Stored tokens enable authenticated offline operations
+- **State Synchronization**: GlobalState maintains offline capabilities after registration
+- **Quota Management**: User quota tracking requires initial online registration
+
+#### **Error Handling Integration**
+- **Network Errors**: Registration failures handled through AuthViewModel error flows
+- **Offline Detection**: NetworkService provides connectivity status for UI feedback
+- **Fallback Behavior**: Clear messaging when offline registration is attempted
 
 ## Offline Download & Availability Flow Notes
 
@@ -223,3 +253,4 @@ sequenceDiagram
 - **Local Encryption**: Optional local file encryption
 - **Access Control**: User-specific download isolation
 - **Privacy Compliance**: GDPR and privacy regulation adherence
+```

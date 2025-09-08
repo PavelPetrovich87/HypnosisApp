@@ -17,6 +17,7 @@ sequenceDiagram
     participant GlobalState
 
     Note over User, GlobalState: Quick Session Generation Flow - Proper MVVM Pattern
+    note right: **Registration Context: Token Creation & Storage**<br/>- User must complete registration before session generation<br/>- JWT token created during AuthService.register()<br/>- Token stored in GlobalState via AuthStore<br/>- Token used for authenticated API calls during generation<br/>- Token refresh handled automatically if expired
 
     %% User Initiates Quick Generation
     User->>GenerateScreen: Tap "Generate New Session" (Quick)
@@ -97,7 +98,38 @@ sequenceDiagram
     end
 
     Note over User, GlobalState: Session generation complete or failed with appropriate user feedback
+
+    %% =================================
+    %% AC REFERENCES
+    %% =================================
+    %% AC-1: Registration prerequisite for session generation documented
+    %% AC-2: Token creation during registration mentioned
+    %% AC-3: Token storage in GlobalState via AuthStore noted
+    %% AC-4: Token usage for authenticated API calls described
+    %% AC-5: Automatic token refresh capability mentioned
 ```
+
+## Session Generation & Registration Integration Notes
+
+### 🔐 **Registration Prerequisites for Session Generation**
+
+#### **Authentication Requirements**
+- **Token Dependency**: Session generation requires valid JWT token from registration
+- **Auth State**: GlobalState.isAuthenticated must be true before generation
+- **Token Validation**: AuthService validates token before API calls
+- **Error Handling**: Token expiration handled through AuthViewModel.refreshAuthToken()
+
+#### **Registration Flow Integration**
+- **Onboarding Completion**: User must complete full registration + verification flow
+- **Profile Setup**: User profile with goals/preferences required for generation
+- **Quota Assignment**: User quota initialized during registration process
+- **Voice Preferences**: Selected voice preference used in session generation
+
+#### **State Management Integration**
+- **AuthStore**: Maintains token and authentication state from registration
+- **UserStore**: Stores user profile and preferences from registration
+- **GlobalState**: Coordinates between auth and session state
+- **Persistence**: Auth state persists across app sessions
 
 ## Quick Session Generation Flow Notes
 
@@ -190,3 +222,4 @@ sequenceDiagram
 - **Download Options**: Local storage for offline playback
 - **Sync Management**: Background synchronization when online
 - **Storage Quotas**: Local storage management and cleanup
+```

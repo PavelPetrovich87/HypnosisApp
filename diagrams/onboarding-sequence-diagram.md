@@ -3,6 +3,7 @@
 ```mermaid
 sequenceDiagram
     participant User
+    participant RegistrationScreen
     participant WelcomeScreen
     participant GoalsScreen
     participant PermissionInfoScreen
@@ -19,12 +20,19 @@ sequenceDiagram
 
     Note over User, GlobalState: Onboarding Flow - Proper MVVM Pattern
 
-    %% Initial App Launch
-    User->>WelcomeScreen: Launch app
-    WelcomeScreen-->>User: Display value proposition & CTA
-    User->>WelcomeScreen: Tap "Get Started"
-    WelcomeScreen->>NavigationService: navigate("GoalsScreen")
-    NavigationService->>GoalsScreen: Navigate to goal selection
+    %% Initial App Launch - Registration First
+    User->>RegistrationScreen: Launch app
+    RegistrationScreen-->>User: Display registration form (email/password)
+    User->>RegistrationScreen: Enter email and password
+    RegistrationScreen->>AuthViewModel: register({email, password})
+    AuthViewModel->>AuthService: register(request)
+    AuthService->>UserRepository: createUser(email, hashedPassword)
+    UserRepository-->>AuthService: User created successfully, verification required
+    AuthService-->>AuthViewModel: Registration successful, token created
+    AuthViewModel->>GlobalState: updateAuthState(isAuthenticated: false, verificationPending: true, token)
+    AuthViewModel-->>RegistrationScreen: Registration complete, proceed to email verification
+    RegistrationScreen->>NavigationService: navigate("VerifyEmailScreen")
+    NavigationService->>VerifyEmailScreen: Navigate to email verification
 
     %% Goal Selection
     GoalsScreen-->>User: Show goal chips (multi-select)
@@ -103,8 +111,12 @@ sequenceDiagram
     AuthService-->>AuthViewModel: verificationConfirmed()
     AuthViewModel->>GlobalState: updateAuthState(isAuthenticated: true, isVerified: true)
     AuthViewModel-->>VerifyEmailScreen: Verification complete
-    VerifyEmailScreen->>NavigationService: navigate("HomeScreen")
-    NavigationService->>HomeScreen: Navigate to Home
+    VerifyEmailScreen->>NavigationService: navigate("WelcomeScreen")
+    NavigationService->>WelcomeScreen: Navigate to Welcome (start onboarding content)
+
+    %% Complete Onboarding Flow to Home
+    ProfileBasicsScreen->>NavigationService: navigate("HomeScreen")
+    NavigationService->>HomeScreen: Navigate to Home (onboarding complete)
 
     %% Home Screen Setup
     HomeScreen->>HomeViewModel: initializeHome()
@@ -119,8 +131,44 @@ sequenceDiagram
     HomeScreen-->>User: Display personalized suggestions
     HomeScreen-->>User: Show recent sessions (empty initially)
 
-    Note over User, GlobalState: Onboarding Complete - User ready to create first session
+    Note over User, GlobalState: Complete Onboarding Flow - Registration → Verification → Onboarding Content → Home
+
+    %% =================================
+    %% AC REFERENCES
+    %% =================================
+    %% AC-1: Initial Registration step added before onboarding content
+    %% AC-2: Token creation during registration shown in sequence
+    %% AC-3: Email verification precedes onboarding content
+    %% AC-4: Complete flow: Registration → Verify → Welcome → Goals → Permissions → Profile → Home
 ```
+
+## Onboarding & Registration Integration Notes
+
+### 🔐 **Registration-First Onboarding Architecture**
+
+#### **Registration Prerequisites**
+- **Initial Step**: Registration happens before any onboarding content
+- **Token Creation**: JWT token created and stored during registration
+- **Email Verification**: Required before accessing onboarding features
+- **GlobalState Update**: Authentication state managed throughout flow
+
+#### **Onboarding Content Post-Verification**
+- **Welcome Screen**: Value proposition shown after email verification
+- **Goal Selection**: User goals captured after registration complete
+- **Permissions**: Storage permissions requested after verification
+- **Profile Setup**: Voice preferences and basic profile after goals
+
+#### **State Management Integration**
+- **AuthState**: Tracks registration and verification status
+- **UserState**: Stores profile data collected during onboarding
+- **Navigation**: Proper flow control through NavigationService
+- **Error Handling**: Registration errors handled through AuthViewModel
+
+#### **Security & Privacy**
+- **Token Security**: JWT tokens properly managed and stored
+- **Data Privacy**: User data collected only after consent
+- **Verification Gate**: Email verification required before onboarding
+- **Secure Storage**: Sensitive data encrypted in local storage
 
 ## Onboarding Flow Notes
 
@@ -155,3 +203,4 @@ sequenceDiagram
 - **Service Layer**: Encapsulates business logic and external integrations  
 - **Repository Layer**: Handles data persistence and retrieval
 - **State Management**: GlobalState provides centralized, predictable state
+```
